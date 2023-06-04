@@ -74,7 +74,8 @@ class PaymentService {
     List<Payment> findPaymentsForGivenMonth(YearMonth yearMonth) {
         List<Payment> all = paymentRepository.findAll();
         List<Payment> result = all.stream()
-                .filter(payment -> payment.getPaymentDate().getMonthValue() == yearMonth.getMonthValue())
+                .filter(payment -> payment.getPaymentDate().getMonthValue() == yearMonth.getMonthValue() &&
+                        yearMonth.getYear() == payment.getPaymentDate().getYear())
                 .collect(Collectors.toList());
         return result;
 
@@ -84,7 +85,7 @@ class PaymentService {
     Znajdź i zwróć płatności dla aktualnego miesiąca
      */
     List<Payment> findPaymentsForCurrentMonth() {
-        return findPaymentsForGivenMonth(YearMonth.now());
+        return findPaymentsForGivenMonth(dateTimeProvider.yearMonthNow());
     }
 
     /*
@@ -143,9 +144,7 @@ class PaymentService {
     BigDecimal sumDiscountForGivenMonth(YearMonth yearMonth) {
         List<Payment> paymentsForGivenMonth = findPaymentsForGivenMonth(yearMonth);
         BigDecimal result = paymentsForGivenMonth.stream()
-                .map(Payment::getPaymentItems)
-                .flatMap(List::stream)
-                .map(paymentItem -> paymentItem.getFinalPrice().subtract(paymentItem.getRegularPrice()))
+                .map(Payment::getTotalDiscount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return result;
     }
@@ -169,12 +168,9 @@ class PaymentService {
     Set<Payment> findPaymentsWithValueOver(int value) {
         List<Payment> all = paymentRepository.findAll();
         Set<Payment> result = all.stream()
-                .flatMap(payment -> payment.getPaymentItems().stream()
-                        .filter(paymentItem -> paymentItem.getFinalPrice().intValueExact() > value)
-                        .map(paymentItem -> payment))
+                .filter(payment -> payment.getTotalCost().compareTo(BigDecimal.valueOf(value)) > 0)
                 .collect(Collectors.toSet());
         return result;
 
     }
-
 }
