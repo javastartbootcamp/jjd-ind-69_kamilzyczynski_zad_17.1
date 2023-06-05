@@ -22,63 +22,51 @@ class PaymentService {
     Znajdź i zwróć płatności posortowane po dacie rosnąco
      */
     List<Payment> findPaymentsSortedByDateAsc() {
-        DateComparator dateComparator = new DateComparator();
-        List<Payment> all = paymentRepository.findAll();
-        List<Payment> result = all.stream()
-                .sorted(dateComparator)
+        return paymentRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Payment::getPaymentDate))
                 .collect(Collectors.toList());
-        return result;
     }
 
     /*
     Znajdź i zwróć płatności posortowane po dacie malejąco
      */
     List<Payment> findPaymentsSortedByDateDesc() {
-        List<Payment> all = paymentRepository.findAll();
-        DateComparator dateComparator = new DateComparator();
-        Comparator<Payment> reversed = dateComparator.reversed();
-        List<Payment> result = all.stream()
-                .sorted(reversed)
+        return paymentRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Payment::getPaymentDate).reversed())
                 .collect(Collectors.toList());
-        return result;
     }
 
     /*
     Znajdź i zwróć płatności posortowane po liczbie elementów rosnąco
      */
     List<Payment> findPaymentsSortedByItemCountAsc() {
-        PaymentItemComparator paymentItemComparator = new PaymentItemComparator();
-        List<Payment> all = paymentRepository.findAll();
-        List<Payment> collect = all.stream()
-                .sorted(paymentItemComparator)
+        return paymentRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing((Payment payment) -> payment.getPaymentItems().size()))
                 .collect(Collectors.toList());
-        return collect;
     }
 
     /*
     Znajdź i zwróć płatności posortowane po liczbie elementów malejąco
      */
     List<Payment> findPaymentsSortedByItemCountDesc() {
-        PaymentItemComparator paymentItemComparator = new PaymentItemComparator();
-        Comparator<Payment> reversed = paymentItemComparator.reversed();
-        List<Payment> all = paymentRepository.findAll();
-        List<Payment> collect = all.stream()
-                .sorted(reversed)
+        return paymentRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing((Payment payment) -> payment.getPaymentItems().size()).reversed())
                 .collect(Collectors.toList());
-        return collect;
     }
 
     /*
     Znajdź i zwróć płatności dla wskazanego miesiąca
      */
     List<Payment> findPaymentsForGivenMonth(YearMonth yearMonth) {
-        List<Payment> all = paymentRepository.findAll();
-        List<Payment> result = all.stream()
+        return paymentRepository.findAll()
+                .stream()
                 .filter(payment -> payment.getPaymentDate().getMonthValue() == yearMonth.getMonthValue() &&
                         yearMonth.getYear() == payment.getPaymentDate().getYear())
                 .collect(Collectors.toList());
-        return result;
-
     }
 
     /*
@@ -94,22 +82,20 @@ class PaymentService {
     List<Payment> findPaymentsForGivenLastDays(int days) {
         ZonedDateTime now = dateTimeProvider.zonedDateTimeNow();
         ZonedDateTime date = now.minusDays(days);
-        List<Payment> all = paymentRepository.findAll();
-        List<Payment> result = all.stream()
+        return paymentRepository.findAll()
+                .stream()
                 .filter(payment -> payment.getPaymentDate().isAfter(date) && payment.getPaymentDate().isBefore(now))
                 .collect(Collectors.toList());
-        return result;
     }
 
     /*
     Znajdź i zwróć płatności z jednym elementem
      */
     Set<Payment> findPaymentsWithOnePaymentItem() {
-        List<Payment> all = paymentRepository.findAll();
-        Set<Payment> result = all.stream()
+        return paymentRepository.findAll()
+                .stream()
                 .filter(payment -> payment.getPaymentItems().size() == 1)
                 .collect(Collectors.toSet());
-        return result;
     }
 
     /*
@@ -117,12 +103,11 @@ class PaymentService {
      */
     Set<String> findProductsSoldInCurrentMonth() {
         List<Payment> paymentsForCurrentMonth = findPaymentsForCurrentMonth();
-        Set<String> result = paymentsForCurrentMonth.stream()
+        return paymentsForCurrentMonth.stream()
                 .map(Payment::getPaymentItems)
                 .flatMap(List::stream)
                 .map(PaymentItem::getName)
                 .collect(Collectors.toSet());
-        return result;
     }
 
     /*
@@ -130,12 +115,11 @@ class PaymentService {
      */
     BigDecimal sumTotalForGivenMonth(YearMonth yearMonth) {
         List<Payment> paymentsForGivenMonth = findPaymentsForGivenMonth(yearMonth);
-        BigDecimal result = paymentsForGivenMonth.stream()
+        return paymentsForGivenMonth.stream()
                 .map(Payment::getPaymentItems)
                 .flatMap(List::stream)
                 .map(PaymentItem::getFinalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return result;
     }
 
     /*
@@ -143,10 +127,9 @@ class PaymentService {
      */
     BigDecimal sumDiscountForGivenMonth(YearMonth yearMonth) {
         List<Payment> paymentsForGivenMonth = findPaymentsForGivenMonth(yearMonth);
-        BigDecimal result = paymentsForGivenMonth.stream()
+        return paymentsForGivenMonth.stream()
                 .map(Payment::getTotalDiscount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return result;
     }
 
     /*

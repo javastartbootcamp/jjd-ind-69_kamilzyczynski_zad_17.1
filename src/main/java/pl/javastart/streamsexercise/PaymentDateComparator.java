@@ -2,7 +2,7 @@ package pl.javastart.streamsexercise;
 
 import java.util.Comparator;
 
-public class DateComparator implements Comparator<Payment> {
+public class PaymentDateComparator implements Comparator<Payment> {
 
     @Override
     public int compare(Payment o1, Payment o2) {
